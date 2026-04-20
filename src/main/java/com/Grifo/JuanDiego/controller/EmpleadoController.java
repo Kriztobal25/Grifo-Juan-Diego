@@ -1,41 +1,43 @@
 package com.Grifo.JuanDiego.controller;
 
-import com.Grifo.JuanDiego.service.EmpleadoService;
 import com.Grifo.JuanDiego.model.Empleado;
+import com.Grifo.JuanDiego.service.EmpleadoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/empleados")
 public class EmpleadoController {
 
-    @PostMapping("/registrar")
-    public String registrarEmpleado(@ModelAttribute Empleado empleado, RedirectAttributes flash) {
-        try {
-            empleadoService.guardar(empleado);
-            flash.addFlashAttribute("success", "Empleado registrado correctamente en la planilla.");
-        } catch (Exception e) {
-            flash.addFlashAttribute("error", "Error: El DNI ya existe.");
-        }
-        return "redirect:/empleados";
-    }
-
     @Autowired
     private EmpleadoService empleadoService;
 
-    @PostMapping("/eliminar")
-    public String eliminar(@RequestParam String dni,
-                           @RequestParam String adminUsername,
-                           @RequestParam String adminPassword,
-                           RedirectAttributes flash) {
+    @GetMapping
+    public String listar(Model model) {
         try {
-            empleadoService.eliminarConSeguridad(dni, adminPassword, adminUsername);
-            flash.addFlashAttribute("success", "Empleado eliminado correctamente.");
+            // Mandamos la lista real
+            model.addAttribute("empleados", empleadoService.listarTodos());
         } catch (Exception e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            // Si algo falla en la DB, mandamos una lista vacía para que el HTML no explote
+            model.addAttribute("empleados", new ArrayList<Empleado>());
+            System.out.println("ERROR CARGANDO EMPLEADOS: " + e.getMessage());
         }
+        return "empleados/empleados"; 
+    }
+
+    // Este método es para que el botón Editar funcione sin recargar página
+    @GetMapping("/buscar/{dni}")
+    @ResponseBody
+    public Empleado buscarParaEditar(@PathVariable("dni") String dni) {
+        return empleadoService.buscarPorDni(dni);
+    }
+    
+    @PostMapping("/guardar")
+    public String guardar(@ModelAttribute Empleado empleado) {
+        empleadoService.guardar(empleado);
         return "redirect:/empleados";
     }
 }

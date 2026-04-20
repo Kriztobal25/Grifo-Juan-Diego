@@ -1,9 +1,10 @@
 package com.Grifo.JuanDiego.service;
 
 import com.Grifo.JuanDiego.model.Catalogo_Combustible;
-import com.Grifo.JuanDiego.repository.CatalogoCombustibleRepository;
+import com.Grifo.JuanDiego.repository.CatalogoCombustibleRepository; // <--- Nombre corregido
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -11,22 +12,29 @@ import java.util.List;
 public class CatalogoService {
 
     @Autowired
-    private CatalogoCombustibleRepository repository;
+    private CatalogoCombustibleRepository repository; // <--- Nombre corregido
 
-    // Método para listar (lo necesitarán tus controladores)
     public List<Catalogo_Combustible> listarTodos() {
         return repository.findAll();
     }
 
-    // Tu método de actualización con el fix de importación
+    public Catalogo_Combustible buscarPorId(Integer id) {
+        return repository.findById(id).orElse(null);
+    }
+
+    @Transactional
     public void actualizarPrecio(Integer id, BigDecimal nuevoPrecio) {
-        Catalogo_Combustible c = repository.findById(id).orElseThrow();
-        c.setPrecioVenta(nuevoPrecio); 
+        Catalogo_Combustible c = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Combustible no encontrado con ID: " + id));
+        
+        c.setPrecioVenta(nuevoPrecio);
         repository.save(c);
     }
 
-    // Método para registrar nuevos tipos de combustible
     public void registrarNuevo(Catalogo_Combustible combustible) {
+        if (combustible.getPrecioVenta() != null && combustible.getPrecioVenta().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("El precio no puede ser negativo");
+        }
         repository.save(combustible);
     }
 }

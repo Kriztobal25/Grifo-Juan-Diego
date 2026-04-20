@@ -7,5 +7,6 @@ import java.util.List;
 
 @Repository
 public interface CreditoRepository extends JpaRepository<Credito, Long> {
-    List<Credito> findByVehiculo_Placa(String placa);
+    // CORRECCIÓN: Quitamos el guion bajo
+    List<Credito> findByVehiculoPlaca(String placa);
 }

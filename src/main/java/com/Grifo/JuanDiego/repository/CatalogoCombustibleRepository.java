@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CatalogoCombustibleRepository extends JpaRepository<Catalogo_Combustible, Integer> {
-    
+    // Aquí no necesitas agregar nada más
 }

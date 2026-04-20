@@ -9,15 +9,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/configuracion/roles")
+@RequestMapping("/usuarios/roles")
 public class RolesController {
-
-    @PostMapping("/registrar")
-    public String registrarRol(@ModelAttribute Roles rol, RedirectAttributes flash) {
-        rolService.guardar(rol);
-        flash.addFlashAttribute("success", "Nuevo rol registrado.");
-        return "redirect:/configuracion/roles";
-    }
 
     @Autowired
     private RolService rolService;
@@ -25,6 +18,18 @@ public class RolesController {
     @GetMapping
     public String listarRoles(Model model) {
         model.addAttribute("roles", rolService.listarRoles());
-        return "configuracion/roles";
+        // CORRECCIÓN: Asegúrate de que el archivo sea templates/usuarios/roles.html
+        return "usuarios/roles"; 
+    }
+
+    @PostMapping("/guardar")
+    public String registrarRol(@ModelAttribute("rol") Roles rol, RedirectAttributes flash) {
+        try {
+            rolService.guardar(rol);
+            flash.addFlashAttribute("success", "Nuevo rol registrado correctamente.");
+        } catch (Exception e) {
+            flash.addFlashAttribute("error", "Error al guardar el rol: " + e.getMessage());
+        }
+        return "redirect:/usuarios/roles";
     }
 }

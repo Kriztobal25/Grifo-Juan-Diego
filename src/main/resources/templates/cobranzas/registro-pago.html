@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Pago - Grifo Juan Diego</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estabilizador del Layout */
+        body { 
+            display: flex; 
+            min-height: 100vh; 
+            background-color: #f1f5f9; 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0;
+        }
+
+        /* Sidebar Fijo */
+        .sidebar { 
+            width: 260px; 
+            background-color: #1e293b; 
+            min-height: 100vh; 
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* Contenido desplazado a la derecha */
+        .main-content { 
+            flex: 1; 
+            margin-left: 260px; 
+            padding: 30px; 
+            width: calc(100% - 260px);
+        }
+
+        .card { border: none; border-radius: 15px; }
+        .monto-total { 
+            font-size: 2.5rem; 
+            font-weight: 800; 
+            color: #15803d; 
+            text-align: center; 
+            background-color: #f0fdf4 !important; 
+            border: 2px solid #bbf7d0 !important; 
+        }
+        .form-label { font-weight: 700; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <nav th:replace="~{layout/navbar :: menu_lateral}"></nav>
+
+    <main class="main-content">
+        <div class="container mt-2">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-7">
+                    <div class="card shadow-lg">
+                        <div class="card-header bg-success text-white py-3 text-center">
+                            <h5 class="mb-0"><i class="fa-solid fa-money-check-dollar me-2"></i> Liquidación de Deuda</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form th:action="@{/cobranzas/registrar-pago}" method="POST" enctype="multipart/form-data">
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">1. Empresa / Cliente con Deuda</label>
+                                    <select name="cobranza.idCobranza" id="selectCobranza" class="form-select form-select-lg border-success shadow-sm" onchange="ponerMonto()" required>
+                                        <option value="" selected disabled>Cargando empresas...</option>
+                                    </select>
+                                    <div id="msgVacio" class="text-danger small mt-2 d-none">
+                                        No se encontraron deudas pendientes en el sistema.
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">2. Monto a Liquidar (S/)</label>
+                                    <input type="number" name="montoPagado" id="montoPagado" step="0.01" 
+                                           class="form-control form-control-lg monto-total" 
+                                           placeholder="0.00" readonly required>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">3. Medio de Pago</label>
+                                    <select name="metodoPago" class="form-select" required>
+                                        <option value="Yape">Yape</option>
+                                        <option value="Transferencia_Bancaria">Transferencia Bancaria</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Ágora">Ágora</option>
+                                        <option value="Plin">Plin</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">4. Foto del Voucher / Sustento</label>
+                                    <input type="file" name="archivoVoucher" class="form-control" accept="image/*" required>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-success btn-lg shadow">
+                                        <i class="fa-solid fa-check-circle me-2"></i> Procesar Liquidación
+                                    </button>
+                                    <a th:href="@{/cobranzas}" class="btn btn-light text-muted">Cancelar</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const select = document.getElementById('selectCobranza');
+            const msgVacio = document.getElementById('msgVacio');
+            
+            fetch('/api/cobranzas/pendientes')
+                .then(response => {
+                    if (!response.ok) throw new Error("Error en la red");
+                    return response.json();
+                })
+                .then(data => {
+                    select.innerHTML = '<option value="" selected disabled>-- Seleccione Empresa --</option>';
+                    
+                    if (data.length === 0) {
+                        msgVacio.classList.remove('d-none');
+                        select.innerHTML = '<option disabled>No hay deudas disponibles</option>';
+                        return;
+                    }
+
+                    data.forEach(cob => {
+                        let opt = document.createElement('option');
+                        opt.value = cob.id;
+                        opt.text = `${cob.empresa} (S/ ${cob.monto.toFixed(2)})`;
+                        opt.dataset.monto = cob.monto;
+                        select.appendChild(opt);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error cargando cobranzas:', error);
+                    select.innerHTML = '<option disabled>Error al cargar datos</option>';
+                });
+        });
+
+        function ponerMonto() {
+            const select = document.getElementById('selectCobranza');
+            const monto = select.options[select.selectedIndex].dataset.monto;
+            const inputMonto = document.getElementById('montoPagado');
+            
+            if (monto) {
+                inputMonto.value = parseFloat(monto).toFixed(2);
+            } else {
+                inputMonto.value = "";
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

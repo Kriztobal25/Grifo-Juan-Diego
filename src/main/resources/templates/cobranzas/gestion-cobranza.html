@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Cobranzas - Grifo Juan Diego</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { display: flex; min-height: 100vh; background-color: #f1f5f9; margin: 0; }
+        .sidebar { width: 260px; background-color: #1e293b; min-height: 100vh; position: fixed; left: 0; top: 0; }
+        .main-content { flex: 1; margin-left: 260px; padding: 30px; width: calc(100% - 260px); }
+        .card { border-radius: 12px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .badge-pendiente { background-color: #fef3c7; color: #92400e; }
+        .badge-vencido { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+    <nav th:replace="~{layout/navbar :: menu_lateral}"></nav>
+
+    <main class="main-content">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0">Cobranzas (API Rest)</h2>
+                <button onclick="cargarCobranzas()" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-sync me-1"></i> Actualizar
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Empresa</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th class="text-end pe-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTabla">
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">Cargando datos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function cargarCobranzas() {
+            try {
+                const response = await fetch('/api/cobranzas/pendientes');
+                const datos = await response.json();
+                const tabla = document.getElementById('cuerpoTabla');
+                
+                if (datos.length === 0) {
+                    tabla.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No hay deudas pendientes.</td></tr>';
+                    return;
+                }
+
+                tabla.innerHTML = datos.map(c => `
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-bold d-block">${c.ruc}</span>
+                            <small class="text-muted">${c.razonSocial}</small>
+                        </td>
+                        <td><span class="fw-bold text-danger">S/ ${c.monto.toFixed(2)}</span></td>
+                        <td>
+                            <span class="badge ${c.estado === 'Vencido' ? 'badge-vencido' : 'badge-pendiente'} px-3 py-2">
+                                ${c.estado}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="/cobranzas/registrar-pago?idCobranza=${c.id}" class="btn btn-sm btn-success">
+                                <i class="fa-solid fa-money-bill-wave"></i> Cobrar
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error("Error al cargar cobranzas:", error);
+                document.getElementById('cuerpoTabla').innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Error al conectar con el servidor.</td></tr>';
+            }
+        }
+
+        // Cargar datos al abrir la página
+        document.addEventListener('DOMContentLoaded', cargarCobranzas);
+    </script>
+</body>
+</html>

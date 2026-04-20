@@ -24,8 +24,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return User.builder()
                 .username(usuario.getUsername())
-                .password(usuario.getPasswordHash()) // Aquí debe estar la clave ya en BCrypt
-                .authorities(usuario.getRol().getNombreRol()) // Le pasamos el rol (ej: "ADMIN")
+                .password(usuario.getPasswordHash())
+                .authorities(usuario.getRol().getNombreRol()) 
                 .build();
     }
 }

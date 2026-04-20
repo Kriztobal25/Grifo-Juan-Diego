@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Empresas - Grifo Juan Diego</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { display: flex; min-height: 100vh; background-color: #f1f5f9; margin: 0; font-family: 'Inter', sans-serif; }
+        .sidebar { width: 260px; background-color: #1e293b; min-height: 100vh; position: fixed; }
+        .main-content { flex: 1; margin-left: 260px; padding: 30px; width: calc(100% - 260px); }
+        .card { border-radius: 12px; }
+        .badge-activo { background-color: #dcfce7; color: #166534; }
+        .badge-suspendido { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+    <nav th:replace="~{layout/navbar :: menu_lateral}"></nav>
+
+    <main class="main-content">
+        <div class="container-fluid">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-building me-2 text-primary"></i> Gestión de Empresas</h3>
+            </div>
+
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 small fw-bold text-uppercase">Datos de la Empresa</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/empresas/guardar}" th:object="${empresa}" method="POST" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">RUC</label>
+                            <input type="text" th:field="*{ruc}" class="form-control" maxlength="11" required th:readonly="${empresa.ruc != null}">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small text-muted">Razón Social</label>
+                            <input type="text" th:field="*{razonSocial}" class="form-control" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold small text-muted">Límite (Galones)</label>
+                            <input type="number" th:field="*{limiteCreditoGalones}" step="0.01" class="form-control" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 shadow-sm fw-bold">
+                                <i class="fa-solid fa-save me-2"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 bg-white">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th class="ps-4">RUC</th>
+                                <th>Empresa</th>
+                                <th>Límite (Gal)</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="e : ${empresas}">
+                                <td class="ps-4 fw-bold" th:text="${e.ruc}"></td>
+                                <td th:text="${e.razonSocial}"></td>
+                                <td th:text="${#numbers.formatDecimal(e.limiteCreditoGalones, 1, 2)}"></td>
+                                <td>
+                                    <span th:if="${#strings.toString(e.estadoEmpresa) == 'Activo'}" class="badge badge-activo px-3 py-2">Activo</span>
+                                    <span th:if="${#strings.toString(e.estadoEmpresa) == 'Suspendido'}" class="badge badge-suspendido px-3 py-2">Suspendido</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a th:href="@{/empresas/editar/{ruc}(ruc=${e.ruc})}" class="btn btn-sm btn-outline-info" title="Editar">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                        
+                                        <form th:action="@{/empresas/suspender/{ruc}(ruc=${e.ruc})}" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm" 
+                                                    th:classappend="${#strings.toString(e.estadoEmpresa) == 'Activo' ? 'btn-outline-danger' : 'btn-outline-success'}"
+                                                    th:title="${#strings.toString(e.estadoEmpresa) == 'Activo' ? 'Suspender' : 'Activar'}">
+                                                <i class="fa-solid" th:classappend="${#strings.toString(e.estadoEmpresa) == 'Activo' ? 'fa-ban' : 'fa-check'}"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Grifo Juan Diego</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estructura Base unificada */
+        body { 
+            display: flex; 
+            min-height: 100vh; 
+            background-color: #f1f5f9; 
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Sidebar Fijo */
+        .sidebar { 
+            width: 260px; 
+            background-color: #1e293b; 
+            min-height: 100vh; 
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* Contenido desplazado a la derecha */
+        .main-content { 
+            flex: 1; 
+            margin-left: 260px; 
+            padding: 40px; 
+            width: calc(100% - 260px);
+        }
+
+        .stat-card { border: none; border-radius: 15px; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .btn-action { transition: all 0.3s; border: 1px solid #e2e8f0; }
+        .btn-action:hover { background-color: #f8fafc !important; transform: scale(1.02); }
+        .nav-section { font-size: 0.75rem; font-weight: bold; color: #64748b; padding: 20px 20px 5px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <nav th:replace="~{layout/navbar :: menu_lateral}"></nav>
+
+    <main class="main-content">
+        <header class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">Bienvenido, <span sec:authentication="name">Usuario</span></h2>
+                <p class="text-muted mb-0">Resumen operativo del sistema de créditos.</p>
+            </div>
+            <div class="bg-white p-2 px-3 rounded shadow-sm border">
+                <span class="text-muted small fw-bold">
+                    <i class="fa-solid fa-calendar-days me-2 text-primary"></i>
+                    <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMMM, yyyy')}">20 de Abril, 2026</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm h-100 border-start border-primary border-5">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2 small fw-bold text-uppercase">Despachado Hoy</h6>
+                                <h2 class="fw-bold mb-0">
+                                    <span th:text="${#numbers.formatDecimal(totalGalonesHoy ?: 0.0, 1, 3)}">0.000</span> 
+                                    <small class="fs-6 text-secondary">Gal</small>
+                                </h2>
+                            </div>
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary fs-2">
+                                <i class="fa-solid fa-gas-pump"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm h-100 border-start border-success border-5">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2 small fw-bold text-uppercase">Deuda Pendiente</h6>
+                                <h2 class="fw-bold mb-0">
+                                    <span th:text="'S/ ' + ${#numbers.formatDecimal(totalDeudaGlobal ?: 0.0, 1, 2)}">S/ 0.00</span>
+                                </h2>
+                            </div>
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success fs-2">
+                                <i class="fa-solid fa-money-bill-trend-up"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm h-100 border-start border-danger border-5">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2 small fw-bold text-uppercase">Empresas en Mora</h6>
+                                <h2 class="fw-bold mb-0 text-danger">
+                                    <span th:text="${conteoVencidos ?: 0}">0</span> 
+                                    <small class="fs-6">Alertas</small>
+                                </h2>
+                            </div>
+                            <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger fs-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-3">Acciones Rápidas</h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a th:href="@{/creditos/despacho}" class="btn btn-white w-100 py-4 shadow-sm text-dark fw-bold border-0 bg-white btn-action text-decoration-none rounded-4 d-block text-center">
+                    <i class="fa-solid fa-plus-circle text-primary d-block fs-3 mb-2"></i> Nuevo Despacho
+                </a>
+            </div>
+
+            <div class="col-md-3">
+                <a th:href="@{/cobranzas/registrar-pago}" class="btn btn-white w-100 py-4 shadow-sm text-dark fw-bold border-0 bg-white btn-action text-decoration-none rounded-4 d-block text-center">
+                    <i class="fa-solid fa-hand-holding-dollar text-success d-block fs-3 mb-2"></i> Registrar Pago
+                </a>
+            </div>
+
+            <div class="col-md-3" sec:authorize="hasAuthority('ADMIN')">
+                <a th:href="@{/empleados}" class="btn btn-white w-100 py-4 shadow-sm text-dark fw-bold border-0 bg-white btn-action text-decoration-none rounded-4 d-block text-center">
+                    <i class="fa-solid fa-user-plus text-info d-block fs-3 mb-2"></i> Gestión Empleados
+                </a>
+            </div>
+
+            <div class="col-md-3">
+                <a th:href="@{/cobranzas}" class="btn btn-white w-100 py-4 shadow-sm text-dark fw-bold border-0 bg-white btn-action text-decoration-none rounded-4 d-block text-center">
+                    <i class="fa-solid fa-file-invoice-dollar text-danger d-block fs-3 mb-2"></i> Gestión Cobranzas
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

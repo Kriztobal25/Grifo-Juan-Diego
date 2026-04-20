@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Vehículos - Grifo Juan Diego</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estructura Base unificada */
+        body { 
+            display: flex; 
+            min-height: 100vh; 
+            background-color: #f1f5f9; 
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Sidebar Fijo */
+        .sidebar { 
+            width: 260px; 
+            background-color: #1e293b; 
+            min-height: 100vh; 
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* Contenido desplazado a la derecha */
+        .main-content { 
+            flex: 1; 
+            margin-left: 260px; 
+            padding: 30px; 
+            width: calc(100% - 260px);
+        }
+
+        .card { border-radius: 12px; }
+        .table-responsive { border-radius: 12px; }
+        .nav-section { font-size: 0.75rem; font-weight: bold; color: #64748b; padding: 20px 20px 5px; text-transform: uppercase; }
+        .form-label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <nav th:replace="~{layout/navbar :: menu_lateral}"></nav>
+
+    <main class="main-content">
+        <div class="container-fluid">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-truck-moving text-primary me-2"></i> Gestión de Unidades
+                </h3>
+                <a th:href="@{/vehiculos}" class="btn btn-primary shadow-sm" th:if="${vehiculo.placa != null}">
+                    <i class="fa-solid fa-plus me-1"></i> Nuevo Registro
+                </a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 small fw-bold text-uppercase">Datos del Vehículo</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/vehiculos/guardar}" th:object="${vehiculo}" method="POST" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Placa</label>
+                            <input type="text" th:field="*{placa}" class="form-control text-uppercase" 
+                                   placeholder="V4X-821" maxlength="7" required 
+                                   th:readonly="${vehiculo.placa != null}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Responsable (Chofer | Empresa)</label>
+                            <select th:field="*{cliente.dniCliente}" class="form-select" required>
+                                <option value="" selected disabled>Seleccione un chofer...</option>
+                                <option th:each="c : ${clientes}" 
+                                        th:value="${c.dniCliente}" 
+                                        th:text="${c.nombreChofer + ' | ' + (c.empresa != null ? c.empresa.razonSocial : 'PARTICULAR')}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Marca / Modelo</label>
+                            <input type="text" th:field="*{marcaModelo}" class="form-control" placeholder="Ej: Toyota Hilux">
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 shadow-sm fw-bold">
+                                <i class="fa-solid fa-save me-2"></i> 
+                                <span th:text="${vehiculo.placa != null ? 'Actualizar' : 'Guardar'}">Guardar</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 bg-white">
+                        <thead class="table-light text-uppercase">
+                            <tr style="font-size: 0.8rem;">
+                                <th class="ps-4">Placa</th>
+                                <th>Marca / Modelo</th>
+                                <th>Responsable</th>
+                                <th>Empresa Vinculada</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="v : ${vehiculos}">
+                                <td class="ps-4">
+                                    <span class="badge bg-secondary fs-6 py-2 px-3 shadow-sm" th:text="${v.placa}"></span>
+                                </td>
+                                <td th:text="${v.marcaModelo ?: '---'}" class="text-muted"></td>
+                                <td>
+                                    <span class="fw-bold d-block text-dark" th:text="${v.cliente != null ? v.cliente.nombreChofer : 'S/N'}"></span>
+                                    <small class="text-muted" th:text="'DNI: ' + ${v.cliente?.dniCliente}"></small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark px-3 py-2" 
+                                          th:text="${v.cliente?.empresa != null ? v.cliente.empresa.razonSocial : 'PARTICULAR'}">
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group shadow-sm">
+                                        <a th:href="@{/vehiculos/editar/{id}(id=${v.placa})}" class="btn btn-sm btn-outline-info" title="Editar">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                        <form th:action="@{/vehiculos/eliminar/{id}(id=${v.placa})}" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="return confirm('¿Está seguro de eliminar esta unidad?')">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(vehiculos)}">
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-truck-pickup fs-2 d-block mb-3 opacity-25"></i>
+                                    No hay unidades registradas en el sistema.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

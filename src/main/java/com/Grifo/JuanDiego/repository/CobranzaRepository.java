@@ -1,11 +1,13 @@
 package com.Grifo.JuanDiego.repository;
 
 import com.Grifo.JuanDiego.model.Cobranza;
+import com.Grifo.JuanDiego.model.Empresa;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import java.util.Optional;
+import java.util.Optional; // IMPORTANTE
 
-@Repository
 public interface CobranzaRepository extends JpaRepository<Cobranza, Long> {
-    Optional<Cobranza> findByEmpresa_Ruc(String ruc);
+    
+    // Añade esta línea exactamente así:
+    Optional<Cobranza> findByEmpresa(Empresa empresa);
+    
 }

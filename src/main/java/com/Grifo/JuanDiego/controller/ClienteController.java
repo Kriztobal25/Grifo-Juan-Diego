@@ -23,7 +23,9 @@ public class ClienteController {
     public String listar(Model model) {
         model.addAttribute("clientes", clienteService.listarTodos());
         model.addAttribute("empresasActivas", empresaService.listarVisibles());
-        return "clientes/lista";
+        
+        // CORRECCIÓN: Según tu imagen, el archivo es "clientes.html" dentro de la carpeta "clientes"
+        return "clientes/clientes"; 
     }
 
     @PostMapping("/guardar")

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Combustibles - Grifo Juan Diego</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estructura Base unificada */
+        body { 
+            display: flex; 
+            min-height: 100vh; 
+            background-color: #f1f5f9; 
+            margin: 0;
+        }
+
+        /* Sidebar Fijo */
+        .sidebar { 
+            width: 260px; 
+            background-color: #1e293b; 
+            min-height: 100vh; 
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* Contenido desplazado a la derecha */
+        .main-content { 
+            flex: 1; 
+            margin-left: 260px; 
+            padding: 30px; 
+            width: calc(100% - 260px);
+        }
+
+        .card { border-radius: 12px; }
+        .list-group-item { border-left: none; border-right: none; }
+        .list-group-item:first-child { border-top: none; }
+    </style>
+</head>
+<body>
+
+    <nav th:replace="~{layout/navbar :: menu_lateral}"></nav>
+
+    <main class="main-content">
+        <div class="container mt-2" style="max-width: 900px;">
+            
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i> <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="card shadow border-0">
+                <div class="card-header bg-warning text-dark fw-bold py-3">
+                    <i class="fa-solid fa-gas-pump me-2"></i> Gestión de Precios de Combustible
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form th:action="@{/combustibles/guardar}" th:object="${combustible}" method="POST" class="row g-3 mb-4 p-3 bg-light rounded-3 border shadow-sm">
+                        
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Nombre del Combustible</label>
+                            <input type="text" th:field="*{nombre}" class="form-control" placeholder="Ej: Gasohol 95 / Diesel" required>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-uppercase">Precio (S/ por Galón)</label>
+                            <input type="number" th:field="*{precioVenta}" step="0.01" class="form-control" placeholder="0.00" required>
+                        </div>
+                        
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-dark w-100 shadow-sm">
+                                <i class="fa-solid fa-save me-1"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+
+                    <h6 class="fw-bold text-muted mb-3 text-uppercase small">Combustibles Registrados</h6>
+                    <ul class="list-group shadow-sm border rounded-3 overflow-hidden">
+                        <li th:each="comb : ${combustibles}" class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <div>
+                                <span class="fw-bold text-primary fs-5" th:text="${comb.nombre}">Gasohol 95</span>
+                                <br><small class="text-muted" th:text="'ID interno: ' + ${comb.id}">ID: 1</small>
+                            </div>
+                            <div class="text-end d-flex align-items-center">
+                                <span class="badge bg-success fs-6 p-2 me-3 shadow-sm">
+                                    S/ <span th:text="${#numbers.formatDecimal(comb.precioVenta, 1, 2)}">18.40</span>
+                                </span>
+                                <a th:href="@{/combustibles/editar/{id}(id=${comb.id})}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                            </div>
+                        </li>
+                        
+                        <li th:if="${#lists.isEmpty(combustibles)}" class="list-group-item text-center text-muted py-5">
+                            <i class="fa-solid fa-circle-info d-block fs-3 mb-2"></i> No hay combustibles registrados actualmente.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
